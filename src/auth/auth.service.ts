@@ -33,6 +33,10 @@ export class AuthService {
 
                     }
                 )
+            if (!newUser) {
+                throw new InternalServerErrorException('User creation failed');
+            }
+
             return newUser;
         } catch (error) {
             if (error.code === '23505') {
