@@ -38,7 +38,7 @@ Customers can post jobs, workers can apply, and payments are handled securely us
 * **Backend Framework:** NestJS
 * **Language:** TypeScript
 * **Database:** PostgreSQL
-* **ORM:** Prisma
+* **ORM:** Drizzle
 * **Authentication:** JWT
 * **Payments:** Escrow based system (gateway integration planned)
 * **API:** REST
