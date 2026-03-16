@@ -1,15 +1,15 @@
-import { pgTable, uuid, varchar, timestamp} from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, uuid, varchar, timestamp } from "drizzle-orm/pg-core";
+
+export const roleEnum = pgEnum('role', ['user', 'admin']);
 
 export const users = pgTable( 'users',  {
     id: uuid('id').defaultRandom().primaryKey(),
     email: varchar('email', {length: 255}).notNull().unique(),
+    fullname: varchar('fullname', { length: 255 }).notNull(),
     password: varchar('password', {length: 245}).notNull(),
+    role: roleEnum('role').default('user'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
-    // lets add antoher filed fullname after there is already users exist 
-    // if i have to done this notNull then i need to insert here default for old data
-    // otherwirse i have to do this manually with without notNull
-    fullname: varchar('fullname', { length: 255 }).default('Unknown').notNull()
 })
 
 // Type Export

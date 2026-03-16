@@ -7,7 +7,7 @@ export const DATABASE_TOKEN = 'DATABASE';
 
 export const databaseProvider = {
   provide: DATABASE_TOKEN,
-  inject: ['CONFIG_SERVICE'],  // we'll use ConfigService
+  inject: [ConfigService],
   useFactory: async (configService: ConfigService) => {
     const pool = new Pool({
       connectionString: configService.get<string>('DATABASE_URL')!,
