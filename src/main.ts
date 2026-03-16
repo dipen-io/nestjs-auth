@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { EnvVars } from './config/env.validation';
 import { corsConfig } from './config/cors.config';
 
@@ -19,6 +20,15 @@ async function bootstrap() {
     app.enableCors(corsConfig());
 
     app.setGlobalPrefix('api/v1');
+
+ const configSwgger = new DocumentBuilder()
+    .setTitle('CourseHub')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, configSwgger);
+  SwaggerModule.setup('api', app, document);
 
     await app.listen(config.get('PORT', { infer: true })!);
     console.log(
