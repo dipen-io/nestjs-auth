@@ -16,7 +16,7 @@ export class CreateAuthDto {
     @IsString()
     @MinLength(4)
     @MaxLength(255)
-    @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/)
+    // @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/)
     password: string;
 
     @IsOptional()
