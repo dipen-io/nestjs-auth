@@ -17,7 +17,7 @@ async function bootstrap() {
             transformOptions: { enableImplicitConversion: true },
         }),
     );
-    app.enableCors(corsConfig());
+    app.enableCors(corsConfig(config));
 
     app.setGlobalPrefix('api/v1');
 

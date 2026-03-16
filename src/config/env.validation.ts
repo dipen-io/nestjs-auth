@@ -3,7 +3,8 @@ import z from "zod";
 export const envSchema = z.object({
     NODE_ENV: z.enum(['dev', 'prod' , 'test' ]).default('prod'),
     PORT: z.coerce.number().positive().default(8001),
-    DATABASE_URL: z.string().url(),
+    DATABASE_URL: z.string(),
+    CORS_ORIGIN: z.string()
 })
 
 export type EnvVars = z.infer<typeof envSchema>;
@@ -18,3 +19,4 @@ export function validate(config: Record<string, unknown>) {
     return parsed.data;
 
 }
+
