@@ -4,7 +4,8 @@ export const envSchema = z.object({
     NODE_ENV: z.enum(['dev', 'prod' , 'test' ]).default('prod'),
     PORT: z.coerce.number().positive().default(8001),
     DATABASE_URL: z.string(),
-    CORS_ORIGIN: z.string()
+    CORS_ORIGIN: z.string(),
+    JWT_SECRET:z.string()
 })
 
 export type EnvVars = z.infer<typeof envSchema>;
