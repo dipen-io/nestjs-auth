@@ -5,7 +5,9 @@ export const envSchema = z.object({
     PORT: z.coerce.number().positive().default(8001),
     DATABASE_URL: z.string(),
     CORS_ORIGIN: z.string(),
-    JWT_SECRET:z.string()
+    JWT_SECRET:z.string(),
+    JWT_REFRESH_TOKEN_EXPIRY: z.string(),
+    JWT_ACCESS_TOKEN_EXPIRY: z.string(),
 })
 
 export type EnvVars = z.infer<typeof envSchema>;

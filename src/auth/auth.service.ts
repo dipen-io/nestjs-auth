@@ -7,10 +7,13 @@ import * as argon2 from 'argon2';
 import type { DB } from 'src/database/types';
 import { eq } from 'drizzle-orm';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { EnvVars } from 'src/config/env.validation';
 
 @Injectable()
 export class AuthService {
     constructor(
+        private env: ConfigService<EnvVars>,
         private jwtService: JwtService,
         @Inject(DATABASE_TOKEN)
         private db: DB
@@ -62,11 +65,10 @@ export class AuthService {
             if (isPassMatch) {
                 const { access_token, refresh_token }= await this.generateToken(user.id, user.email);
                 await this.updateRefreshToken(user.id, refresh_token)
-                const {password, ...result} = user;
+                const {password, refreshToken, ...result} = user;
                 return {
                     result, 
                     access_token: access_token,
-                    refresh_token: refresh_token
                 };
             }
         }
@@ -93,11 +95,11 @@ export class AuthService {
        const paylaod = { sub: userId, email } 
 
         const access_token = await this.jwtService.signAsync(paylaod, {
-            expiresIn: '15m',
+            expiresIn: this.env.getOrThrow('JWT_ACCESS_TOKEN_EXPIRY')
         });
 
         const refresh_token = await this.jwtService.signAsync(paylaod, {
-            expiresIn: '7d',
+            expiresIn: this.env.getOrThrow('JWT_REFRESH_TOKEN_EXPIRY')
         });
 
         return { access_token, refresh_token }
