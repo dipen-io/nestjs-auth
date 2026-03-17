@@ -48,6 +48,7 @@ export class AuthService {
         }
     }
 
+    //login user
     async validateUser(email: string, pass: string): Promise<any>{
         // find user by email
         const [user] = await this.db
@@ -58,12 +59,14 @@ export class AuthService {
         if (user) {
             // compare password
             const isPassMatch = await argon2.verify(user.password, pass);
-            const payload = { sub: user.id, email: user.email }
             if (isPassMatch) {
+                const { access_token, refresh_token }= await this.generateToken(user.id, user.email);
+                await this.updateRefreshToken(user.id, refresh_token)
                 const {password, ...result} = user;
                 return {
                     result, 
-                    access_token: this.jwtService.sign(payload)
+                    access_token: access_token,
+                    refresh_token: refresh_token
                 };
             }
         }
@@ -84,5 +87,28 @@ export class AuthService {
 
     remove(id: number) {
         return `This action removes a #${id} auth`;
+    }
+
+    async generateToken(userId: string | number, email: string ){
+       const paylaod = { sub: userId, email } 
+
+        const access_token = await this.jwtService.signAsync(paylaod, {
+            expiresIn: '15m',
+        });
+
+        const refresh_token = await this.jwtService.signAsync(paylaod, {
+            expiresIn: '7d',
+        });
+
+        return { access_token, refresh_token }
+    }
+
+    async updateRefreshToken(userId: string , refreshToken: string){
+        const hashed =  await argon2.hash(refreshToken);
+
+         await this.db
+        .update(schema.users)
+        .set({refreshToken: hashed})
+        .where(eq(schema.users.id, userId))
     }
 }
