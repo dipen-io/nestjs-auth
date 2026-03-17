@@ -6,10 +6,12 @@ import * as schema from '../database/schema/'
 import * as argon2 from 'argon2';
 import type { DB } from 'src/database/types';
 import { eq } from 'drizzle-orm';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
     constructor(
+        private jwtService: JwtService,
         @Inject(DATABASE_TOKEN)
         private db: DB
     ){}
@@ -56,9 +58,13 @@ export class AuthService {
         if (user) {
             // compare password
             const isPassMatch = await argon2.verify(user.password, pass);
+            const payload = { sub: user.id, email: user.email }
             if (isPassMatch) {
                 const {password, ...result} = user;
-                return result;
+                return {
+                    result, 
+                    access_token: this.jwtService.sign(payload)
+                };
             }
         }
         return null
