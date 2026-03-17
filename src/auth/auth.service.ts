@@ -18,6 +18,7 @@ export class AuthService {
         @Inject(DATABASE_TOKEN)
         private db: DB
     ){}
+    //regiser user
     async register(createAuthDto: CreateAuthDto) {
         // Hash the Password 
         const hashedPassword = await argon2.hash(createAuthDto.password);
@@ -73,6 +74,14 @@ export class AuthService {
             }
         }
         return null
+    }
+
+    //logout user
+    async logout(userId: string) {
+        await this.db
+        .update(schema.users)
+        .set({refreshToken: null})
+        .where(eq(schema.users.id, userId))
     }
 
     findAll() {
