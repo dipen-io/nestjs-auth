@@ -44,4 +44,21 @@ export class UsersService {
     async resetPassword(userId: string, hashedPassword: string) {
         return this.usersRepository.resetPassword(userId, hashedPassword);
     }
+    
+    async saveEmailOtp(userId: string, hashedOtp: string, expiry: Date) {
+        return this.usersRepository.saveEmailOtp(userId, hashedOtp, expiry);
+    }
+
+    async incrementEmailOtpAttempts(userId: string){
+        return this.usersRepository.incrementEmailOtpAttempts(userId);
+    }
+
+    async clearEmailOtp(userId: string){
+        return this.usersRepository.clearEmailOtp(userId);
+    }
+
+    async markEmailVerified(userId: string){
+        return this.usersRepository.markEmailVerified(userId);
+    }
+
 }

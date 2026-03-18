@@ -118,5 +118,47 @@ export class UsersRepository {
         })
         .where(eq(schema.users.id, userId));
     }
+    async saveEmailOtp(userId: string, hashedOtp: string, expiry: Date) {
+        await this.db
+        .update(schema.users)
+        .set({
+            emailOtp: hashedOtp,
+            emailOtpExpiry: expiry,
+            emailOtpAttempts: 0,
+        })
+        .where(eq(schema.users.id, userId));
+    } 
+
+    async incrementEmailOtpAttempts(userId: string) {
+        await this.db
+        .update(schema.users)
+        .set({
+            emailOtpAttempts: sql`${schema.users.emailOtpAttempts} + 1`,
+        })
+        .where(eq(schema.users.id, userId));
+    }
+
+    async clearEmailOtp(userId: string) {
+        await this.db
+        .update(schema.users)
+        .set({
+            emailOtp: null,
+            emailOtpExpiry: null,
+            emailOtpAttempts: 0
+        })
+        .where(eq(schema.users.id, userId));
+    }
+
+    async markEmailVerified(userId: string) {
+        await this.db
+        .update(schema.users)
+        .set({
+            isEmailVerified: true,
+            emailOtp: null,
+            emailOtpExpiry: null,
+            emailOtpAttempts: 0
+        })
+        .where(eq(schema.users.id, userId));
+    }
 
 }
