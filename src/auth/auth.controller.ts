@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, HttpCode, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, HttpCode, UnauthorizedException, UseGuards, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorator/current-user.decorator';
-import { string } from 'node_modules/zod/v4/mini/coerce.cjs';
+import type { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -22,11 +22,18 @@ export class AuthController {
     }
 
     @Post('login')
-    async login(@Body() dto: LoginDto) {
+    async login(
+        @Body() dto: LoginDto,
+        @Res({ passthrough: true}) res: Response
+    ) {
         const user = await this.authService.validateUser(dto.email, dto.password);
         if (!user) {
             throw new UnauthorizedException('Invalid Credentials');
         }
+
+        // sending token expiry as header metadata
+        res.setHeader('X-Token-Expires-In', '3600');
+
         //NOTE: we will return an jwt here 
         return { message: 'Login Successfully', user }
 

@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { EnvVars } from './config/env.validation';
 import { corsConfig } from './config/cors.config';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -18,7 +19,7 @@ async function bootstrap() {
         }),
     );
     app.enableCors(corsConfig(config));
-
+    app.useGlobalInterceptors(new ResponseInterceptor())
     app.setGlobalPrefix('api/v1');
 
  const configSwgger = new DocumentBuilder()

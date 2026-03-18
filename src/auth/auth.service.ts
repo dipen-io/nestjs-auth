@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { DATABASE_TOKEN } from 'src/database/database.provider';
@@ -86,10 +86,13 @@ export class AuthService {
         });
 
         if (!dbUser) {
-            throw new InternalServerErrorException('User not found!');
+            throw new NotFoundException('User not found');
         }
 
-        return dbUser;
+        return{
+            message: "Fetched Users Details from db",
+            data:dbUser
+        }
     }
     //logout user
     async logout(userId: string) {
