@@ -6,6 +6,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorator/current-user.decorator';
 import type { Response } from 'express';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -60,6 +61,16 @@ export class AuthController {
         @CurrentUser() user: { userId: string }
     ) {
         return this.authService.getProfile(user.userId);
+    }
+
+    // changed password
+    @UseGuards(JwtAuthGuard)
+    @Patch('changed-password')
+    async changePassword(
+        @CurrentUser() user: {userId: string},
+        @Body() dto: ChangePasswordDto
+    ){
+        return this.authService.changedPassword(user.userId, dto);
     }
 
 }
