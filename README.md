@@ -50,11 +50,13 @@ src/
 │   └── mail.service.ts
 ├── database/
 │   ├── database.provider.ts
+│   ├── database.module.ts
 │   ├── schema/
 │   │   └── users.ts
 │   └── types.ts
 ├── config/
 │   └── env.validation.ts
+│   └── cors.config.ts
 ├── common/
 │   └── interceptors/
 │       └── response.interceptor.ts
@@ -72,18 +74,18 @@ Create a `.env` file in the root of your project:
 DATABASE_URL=postgresql://user:password@localhost:5432/mydb
 
 # JWT
-JWT_SECRET=your_access_token_secret
-JWT_REFRESH_SECRET=your_refresh_token_secret
-JWT_ACCESS_TOKEN_EXPIRY=15m
+JWT_SECRET=supersecretkey
 JWT_REFRESH_TOKEN_EXPIRY=7d
+JWT_ACCESS_TOKEN_EXPIRY=15m
+JWT_REFRESH_SECRET=your_refresh_token_secret
 
 # Mail (Gmail SMTP)
-MAIL_USER=yourgmail@gmail.com
 MAIL_PASSWORD=your_gmail_app_password
+MAIL_USER=yourgmail@gmail.com
 
 # App
-APP_URL=http://localhost:3000
-PORT=3000
+CORS_ORIGIN=http://localhost:3000,http://localhost:8001,https://hoppscotch.io
+PORT=8001
 ```
 
 > **Gmail App Password** — Go to Google Account → Security → 2-Step Verification → App Passwords → Generate one. Do **not** use your real Gmail password.
@@ -298,21 +300,23 @@ Correct     → action performed  → OTP cleared from DB
 
 ```typescript
 users {
-  id                  uuid          PK
-  fullname            varchar(255)
-  email               varchar(255)  UNIQUE
-  password            varchar(255)
-  refreshToken        varchar(512)  NULLABLE
-  isEmailVerified     boolean       DEFAULT false
-  emailOtp            varchar(255)  NULLABLE
-  emailOtpExpiry      timestamp     NULLABLE
-  emailOtpAttempts    integer       DEFAULT 0
-  otpToken            varchar(255)  NULLABLE
-  otpExpiry           timestamp     NULLABLE
-  otpAttempts         integer       DEFAULT 0
-  role                enum          DEFAULT 'user'
-  createdAt           timestamp     DEFAULT now()
-  updatedAt           timestamp     DEFAULT now()
+    id: uuid('id').defaultRandom().primaryKey(),
+    email: varchar('email', {length: 255}).notNull().unique(),
+    fullname: varchar('fullname', { length: 255 }).notNull(),
+    password: varchar('password', {length: 245}).notNull(),
+    refreshToken: text('refresh_token'),
+    role: roleEnum('role').default('user'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+
+    otpToken: varchar('otp_token', {length: 255}),
+    otpExpiry: timestamp('otp_expiry'),
+    otpAttempts: integer('otp_attempts').default(0),
+
+    isEmailVerified: boolean('is_email_verified').default(false).notNull(),
+    emailOtp: varchar('email_otp', {length: 255}),
+    emailOtpExpiry: timestamp('email_otp_expiry'),
+    emailOtpAttempts: integer('email_otp_attempts').default(0),
 }
 ```
 
