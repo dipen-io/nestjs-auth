@@ -79,14 +79,18 @@ export class AuthService {
     }
 
     // me /profile
-    async getMe(@CurrentUser() user: { userId: string }) {
+    async getMeFromDb(@CurrentUser() user: { userId: string }) {
         const dbUser = await this.db.query.users.findFirst({
             where: eq(schema.users.id, user.userId),
-            columns: { id: true, email: true, createdAt: true }, // select only what you need
+            columns: { id: true, fullname: true, email: true, createdAt: true }, // select only what you need
         });
 
+        if (!dbUser) {
+            throw new InternalServerErrorException('User not found!');
+        }
+
         return dbUser;
-}
+    }
     //logout user
     async logout(userId: string) {
         await this.db

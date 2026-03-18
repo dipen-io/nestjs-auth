@@ -5,6 +5,7 @@ import { UpdateAuthDto } from './dto/update-auth.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorator/current-user.decorator';
+import { string } from 'node_modules/zod/v4/mini/coerce.cjs';
 
 @Controller('auth')
 export class AuthController {
@@ -31,6 +32,7 @@ export class AuthController {
 
     }
 
+    // this is from token
     @UseGuards(JwtAuthGuard)
     @Get('me')
     async getMe(@CurrentUser() user: { userId: string; email: string }) {
@@ -39,6 +41,15 @@ export class AuthController {
             id: user.userId,
             email: user.email,
         };
+    }
+
+    // this is from db
+    @UseGuards(JwtAuthGuard)
+    @Get('profile')
+    async getMeFromDb(
+        @CurrentUser() user: { userId: string }
+    ) {
+        return this.authService.getMeFromDb(user);
     }
 
     @Get(':id')
