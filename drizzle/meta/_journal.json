@@ -15,6 +15,13 @@
       "when": 1773775448622,
       "tag": "0001_strange_marvel_boy",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773823747506,
+      "tag": "0002_wise_madame_hydra",
+      "breakpoints": true
     }
   ]
 }
