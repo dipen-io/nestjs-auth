@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     ConflictException,
     ForbiddenException,
     Injectable,
@@ -13,10 +14,14 @@ import { EnvVars } from 'src/config/env.validation';
 import { UsersService } from 'src/users/users.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { MailService } from 'src/mail/mail.service';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { hash } from 'node:crypto';
 
 @Injectable()
 export class AuthService {
     constructor(
+        private mailService: MailService,
         private usersService: UsersService,
         private env: ConfigService<EnvVars>,
         private jwtService: JwtService,
@@ -122,5 +127,59 @@ export class AuthService {
         await this.usersService.updatePassword(userId, hashed);
 
         return { message: 'Password changed successfully. Please login again.' };
+    }
+
+    async forgotpassword(email: string) {
+        const user = await this.usersService.findByEmail(email);
+
+        if (!user) return { message: 'If that email exists, an OTP has been sent.' };
+
+        // generate 6 digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        //hash the otp
+        const hashed = await argon2.hash(otp);
+
+        // 5 min expriry
+        const expiry = new Date(Date.now() + 5 * 60 * 1000);
+
+        await this.usersService.saveOtp(user.id, hashed, expiry);
+
+        //send raw otp in email
+        await this.mailService.sendOtpEmail(user.email, otp);
+
+        return { message: 'If that email exists, an OTP has been sent.' };
+
+    }
+
+    async resetPasswordWithOtp(dto: VerifyOtpDto){
+        const user = await this.usersService.findByEmail(dto.email);
+        if (!user || !user.otpToken || !user.otpExpiry) {
+            throw new BadRequestException('Invalid or expired OTP!');
+        }
+
+        if (user.otpAttempts! >= 5) {
+            await this.usersService.clearOtp(user.id);
+            throw new BadRequestException('Too many attempts. Please request a new OTP.');
+        }
+
+        if (new Date() > user.otpExpiry) {
+            await this.usersService.clearOtp(user.id);
+            throw new BadRequestException('OTP has expired. Please request a new one.');
+        }
+
+        const isMatch = await argon2.verify(user.otpToken, dto.otp);
+        if (!isMatch) {
+            await this.usersService.incrementOtpAttempts(user.id);
+            const remaining = 5 - (user.otpAttempts! + 1);
+            throw new BadRequestException(
+                `Incorrect OTP. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`
+            );
+        }
+
+        const hashed = await argon2.hash(dto.newPassword);
+        await this.usersService.resetPassword(user.id, hashed);
+
+        return { message: 'Password reset successfully. Please login again.' };
     }
 }

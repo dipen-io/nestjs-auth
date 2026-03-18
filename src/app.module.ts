@@ -4,6 +4,7 @@ import { DatabaseModule } from './database/database.module';
 import { validate } from './config/env.validation';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { UsersModule } from './users/users.module';
         }),
         DatabaseModule,
         AuthModule,
-        UsersModule
+        UsersModule,
+        MailModule
     ],
   controllers: [],
   providers: [],

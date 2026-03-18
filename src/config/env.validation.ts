@@ -9,6 +9,8 @@ export const envSchema = z.object({
     JWT_REFRESH_TOKEN_EXPIRY: z.string(),
     JWT_ACCESS_TOKEN_EXPIRY: z.string(),
     JWT_REFRESH_SECRET: z.string(),
+    MAIL_PASSWORD: z.string(),
+    MAIL_USER: z.string(),
 })
 
 export type EnvVars = z.infer<typeof envSchema>;

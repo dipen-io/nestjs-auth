@@ -7,6 +7,8 @@ import { CurrentUser } from './decorator/current-user.decorator';
 import type { Response } from 'express';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -71,6 +73,16 @@ export class AuthController {
         @Body() dto: ChangePasswordDto
     ){
         return this.authService.changedPassword(user.userId, dto);
+    }
+
+    @Post('forgot-password')
+    async forgotPassword(@Body() dto: ForgotPasswordDto) {
+        return this.authService.forgotpassword(dto.email);
+    }
+
+    @Post('reset-password')
+    async resetPassword(@Body() dto: VerifyOtpDto) {
+        return this.authService.resetPasswordWithOtp(dto);
     }
 
 }

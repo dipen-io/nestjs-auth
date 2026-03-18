@@ -8,6 +8,7 @@ import { ConfigService, ConfigModule } from '@nestjs/config';
 import { EnvVars } from 'src/config/env.validation';
 import { UsersModule } from 'src/users/users.module';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
     imports: [
@@ -21,6 +22,8 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
             }),
         }),
         UsersModule,
+        MailModule
+
     ],
   controllers: [AuthController ],
   providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
