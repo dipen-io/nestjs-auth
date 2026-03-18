@@ -5,7 +5,6 @@ import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorator/current-user.decorator';
 import type { Response } from 'express';
-import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 
 @Controller('auth')
@@ -38,6 +37,12 @@ export class AuthController {
         //NOTE: we will return an jwt here 
         return { message: 'Login Successfully', user }
 
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('logout')
+    async logout( @CurrentUser() user: {userId: string}) {
+        return this.authService.logout(user.userId);
     }
 
     @UseGuards(JwtRefreshGuard)
