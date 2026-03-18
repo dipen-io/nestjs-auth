@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { validate } from './config/env.validation';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -11,7 +12,8 @@ import { AuthModule } from './auth/auth.module';
             isGlobal: true,
         }),
         DatabaseModule,
-        AuthModule
+        AuthModule,
+        UsersModule
     ],
   controllers: [],
   providers: [],

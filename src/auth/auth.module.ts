@@ -6,6 +6,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import { EnvVars } from 'src/config/env.validation';
+import { UsersModule } from 'src/users/users.module';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 
 @Module({
     imports: [
@@ -18,8 +20,9 @@ import { EnvVars } from 'src/config/env.validation';
                 signOptions: { expiresIn: '1h' },
             }),
         }),
+        UsersModule,
     ],
   controllers: [AuthController ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy],
 })
 export class AuthModule {}

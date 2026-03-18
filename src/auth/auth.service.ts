@@ -1,6 +1,5 @@
-import { ConflictException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { DATABASE_TOKEN } from 'src/database/database.provider';
 import * as schema from '../database/schema/'
 import * as argon2 from 'argon2';
@@ -10,10 +9,12 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { EnvVars } from 'src/config/env.validation';
 import { CurrentUser } from './decorator/current-user.decorator';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
     constructor(
+        private usersService: UsersService,
         private env: ConfigService<EnvVars>,
         private jwtService: JwtService,
         @Inject(DATABASE_TOKEN)
@@ -67,7 +68,8 @@ export class AuthService {
             const isPassMatch = await argon2.verify(user.password, pass);
             if (isPassMatch) {
                 const { access_token, refresh_token }= await this.generateToken(user.id, user.email);
-                await this.updateRefreshToken(user.id, refresh_token)
+                const hashed = await argon2.hash(refresh_token);
+                await this.usersService.saveRefreshToken(user.id, hashed);
                 const {password, refreshToken, ...result} = user;
                 return {
                     result, 
@@ -102,42 +104,35 @@ export class AuthService {
         .where(eq(schema.users.id, userId))
     }
 
-    findAll() {
-        return `This action returns all auth`;
+    //refreshToken
+    async refresh(userId: string, email: string, rawRfreshToken: string) {
+        const user = await this.usersService.findById(userId);
+        if (!user || !user.refreshToken) throw new ForbiddenException('Access denied');
+
+        const tokenMatch = await argon2.verify(user.refreshToken, rawRfreshToken);
+        if (!tokenMatch) throw new ForbiddenException('Access defined');
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} auth`;
-    }
 
-    update(id: number, updateAuthDto: UpdateAuthDto) {
-        return `This action updates a #${id} auth`;
-    }
-
-    remove(id: number) {
-        return `This action removes a #${id} auth`;
-    }
-
-    async generateToken(userId: string | number, email: string ){
+    async generateToken(userId: string, email: string ){
        const paylaod = { sub: userId, email } 
 
-        const access_token = await this.jwtService.signAsync(paylaod, {
-            expiresIn: this.env.getOrThrow('JWT_ACCESS_TOKEN_EXPIRY')
-        });
+        const [access_token, refresh_token] = await Promise.all([
+            this.jwtService.signAsync(paylaod, {
+                secret: this.env.getOrThrow('JWT_SECRET'),
+                expiresIn: this.env.getOrThrow('JWT_ACCESS_TOKEN_EXPIRY')
+            }),
 
-        const refresh_token = await this.jwtService.signAsync(paylaod, {
-            expiresIn: this.env.getOrThrow('JWT_REFRESH_TOKEN_EXPIRY')
-        });
+            this.jwtService.signAsync(paylaod, {
+                secret: this.env.getOrThrow('JWT_REFRESH_SECRET'),
+                expiresIn: this.env.getOrThrow('JWT_REFRESH_TOKEN_EXPIRY')
+            })
+        ])
+
+        //hash the refresh_token
+        const hashed = await argon2.hash(refresh_token);
+        await this.usersService.saveRefreshToken(userId, hashed);
 
         return { access_token, refresh_token }
-    }
-
-    async updateRefreshToken(userId: string , refreshToken: string){
-        const hashed =  await argon2.hash(refreshToken);
-
-         await this.db
-        .update(schema.users)
-        .set({refreshToken: hashed})
-        .where(eq(schema.users.id, userId))
     }
 }
