@@ -9,6 +9,8 @@ import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
+import { VerifiedGuard } from './guards/verified.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -19,7 +21,7 @@ export class AuthController {
     async signup(@Body() createAuthDto: CreateAuthDto) {
         const user = await this.authService.register(createAuthDto);
         return {
-            message:"User Created Successfully",
+            message: 'Registration successful. Please verify your email.',
             data: user
         }
     }
@@ -56,14 +58,6 @@ export class AuthController {
         return this.authService.refresh(user.userId, user.email, user.refreshToken);
     }
 
-    // this is from db
-    @UseGuards(JwtAuthGuard)
-    @Get('profile')
-    async getMeFromDb(
-        @CurrentUser() user: { userId: string }
-    ) {
-        return this.authService.getProfile(user.userId);
-    }
 
     // changed password
     @UseGuards(JwtAuthGuard)
@@ -83,6 +77,33 @@ export class AuthController {
     @Post('reset-password')
     async resetPassword(@Body() dto: VerifyOtpDto) {
         return this.authService.resetPasswordWithOtp(dto);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('verify-email')
+    async verifyEmail(
+        @CurrentUser() user: {userId: string},
+        @Body() dto: VerifyEmailDto,
+    ) {
+        return this.authService.verifyEmail(user.userId, dto.otp);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('resend-verification')
+    async resendVerification(
+        @CurrentUser() user: {userId : string, email: string},
+    ) {
+        return this.authService.resetEmailOtp(user.userId, user.email);
+    }
+
+
+    // this is from db
+    @UseGuards(JwtAuthGuard, VerifiedGuard)
+    @Get('profile')
+    async getMeFromDb(
+        @CurrentUser() user: { userId: string }
+    ) {
+        return this.authService.getProfile(user.userId);
     }
 
 }

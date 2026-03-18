@@ -27,6 +27,16 @@ export class AuthService {
         private jwtService: JwtService,
     ) {}
 
+    // helper — reuse for both register and resend
+    private async sendEmailOtp(userId: string, email: string) {
+      const otp     = Math.floor(100000 + Math.random() * 900000).toString();
+      const hashed  = await argon2.hash(otp);
+      const expiry  = new Date(Date.now() + 5 * 60 * 1000);
+
+      await this.usersService.saveEmailOtp(userId, hashed, expiry);
+      await this.mailService.sendEmailVerificationOtp(email, otp);
+    }
+
     // register new user
     async register(createAuthDto: CreateAuthDto) {
         const hashedPassword = await argon2.hash(createAuthDto.password);
@@ -39,6 +49,10 @@ export class AuthService {
             });
 
             if (!newUser) throw new InternalServerErrorException('User creation failed');
+
+            //send email
+            await this.sendEmailOtp(newUser.id, newUser.email);
+
             return newUser;
 
         } catch (error) {
@@ -181,5 +195,52 @@ export class AuthService {
         await this.usersService.resetPassword(user.id, hashed);
 
         return { message: 'Password reset successfully. Please login again.' };
+    }
+
+    async verifyEmail(userId: string, otp: string) {
+        const user = await this.usersService.findById(userId);
+        if (!user) throw new NotFoundException('User not found');
+
+        if (user.isEmailVerified) {
+            return {message: 'Email is already verified. '};
+        }
+
+        if (!user.emailOtp || !user.emailOtpExpiry) {
+            throw new BadRequestException('No OTP found. Please request a new one');
+        }
+
+        if (user.emailOtpAttempts! >= 5) {
+            await this.usersService.clearEmailOtp(user.id);
+            throw new BadRequestException('Too many attempts. Please request a new OTP.');
+        }
+
+        if (new Date() > user.emailOtpExpiry) {
+            await this.usersService.clearEmailOtp(user.id);
+            throw new BadRequestException('OTP has expired. Please request a new one.');
+        }
+
+        const isMatch = await argon2.verify(user.emailOtp, otp);
+        if (!isMatch) {
+            await this.usersService.incrementEmailOtpAttempts(user.id);
+            const remaining = 5 - (user.emailOtpAttempts! + 1);
+            throw new BadRequestException(
+                `Incorrect OTP. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`
+            )
+        }
+        await this.usersService.markEmailVerified(user.id);
+        return { message: 'Email verified successfully.' };
+
+    }
+
+    async resetEmailOtp(userId: string, email: string) {
+        const user = await this.usersService.findById(userId);
+        if (!user) throw new NotFoundException('User not found');
+
+        if (user.isEmailVerified) {
+            return {message: 'Email is already verified'};
+        }
+
+        await this.sendEmailOtp(userId, email);
+        return { message: 'A new OTP has been sent to your email.' };
     }
 }

@@ -1,4 +1,4 @@
-import {integer, pgEnum, pgTable, uuid, varchar, timestamp, text } from "drizzle-orm/pg-core";
+import {integer, pgEnum, pgTable, uuid, varchar, timestamp, text, boolean } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum('role', ['user', 'admin']);
 
@@ -15,6 +15,11 @@ export const users = pgTable( 'users',  {
     otpToken: varchar('otp_token', {length: 255}),
     otpExpiry: timestamp('otp_expiry'),
     otpAttempts: integer('otp_attempts').default(0),
+
+    isEmailVerified: boolean('is_email_verified').default(false).notNull(),
+    emailOtp: varchar('email_otp', {length: 255}),
+    emailOtpExpiry: timestamp('email_otp_expiry'),
+    emailOtpAttempts: integer('email_otp_attempts').default(0),
 })
 
 // Type Export
