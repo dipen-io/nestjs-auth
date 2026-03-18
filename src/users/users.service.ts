@@ -1,19 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import { UsersRespository } from './users.repository';
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
-    constructor(private readonly usersRepository: UsersRespository) {}
+  constructor(private readonly usersRepository: UsersRepository) {}
 
-    async findByEmail(email: string) {
-        return this.usersRepository.findByEmail(email);
-    }
+  async findByEmail(email: string) {
+    return this.usersRepository.findByEmail(email);
+  }
 
-    async findById(id: string) {
-        return this.usersRepository.findById(id);
-    }
+  async findById(id: string) {
+    return this.usersRepository.findById(id);
+  }
 
-    async saveRefreshToken(userId: string, hashedToken: string) {
-        return this.usersRepository.updateRefreshToken(userId, hashedToken)
-    }
+  async create(data: { email: string; password: string; fullname: string }) {
+    return this.usersRepository.create(data);
+  }
+
+  async saveRefreshToken(userId: string, token: string | null) {
+    return this.usersRepository.updateRefreshToken(userId, token);
+  }
+
+  async findProfile(userId: string) {
+    return this.usersRepository.findProfileById(userId);
+  }
 }

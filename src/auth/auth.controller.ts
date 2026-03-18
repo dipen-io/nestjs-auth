@@ -48,25 +48,13 @@ export class AuthController {
         return this.authService.refresh(user.userId, user.email, user.refreshToken);
     }
 
-
-    // this is from token
-    @UseGuards(JwtAuthGuard)
-    @Get('me')
-    async getMe(@CurrentUser() user: { userId: string; email: string }) {
-        // user.userId comes from JwtStrategy validate()
-        return {
-            id: user.userId,
-            email: user.email,
-        };
-    }
-
     // this is from db
     @UseGuards(JwtAuthGuard)
     @Get('profile')
     async getMeFromDb(
         @CurrentUser() user: { userId: string }
     ) {
-        return this.authService.getMeFromDb(user);
+        return this.authService.getProfile(user.userId);
     }
 
 }
