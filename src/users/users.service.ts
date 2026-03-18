@@ -28,4 +28,20 @@ export class UsersService {
     async updatePassword (userId: string, hashedPassword: string){
         return this.usersRepository.updatePasswordAndClearToken(userId, hashedPassword);
     }
+
+    async saveOtp(userId: string, hashedOtp: string, expiry: Date) {
+        return this.usersRepository.saveOtp(userId, hashedOtp, expiry);
+    }
+
+    async incrementOtpAttempts(userId: string) {
+        return this.usersRepository.incrementOtpAttempt(userId);
+    }
+
+    async clearOtp(userId: string) {
+        return this.usersRepository.clearOtp(userId);
+    }
+
+    async resetPassword(userId: string, hashedPassword: string) {
+        return this.usersRepository.resetPassword(userId, hashedPassword);
+    }
 }

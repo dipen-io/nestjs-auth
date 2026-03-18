@@ -4,6 +4,7 @@ import { DATABASE_TOKEN } from 'src/database/database.provider';
 import * as schema from '../database/schema';
 import type { DB } from 'src/database/types';
 import { hash } from 'node:crypto';
+import { sql } from 'drizzle-orm';
 
 @Injectable()
 export class UsersRepository {
@@ -73,4 +74,49 @@ export class UsersRepository {
         })
         .where(eq(schema.users.id, userId))
     }
+    
+    async saveOtp(userId: string, hashedOtp: string, expiry: Date){
+        await this.db
+        .update(schema.users)
+        .set({
+            otpToken: hashedOtp,
+            otpExpiry: expiry,
+            otpAttempts: 0
+        })
+        .where(eq(schema.users.id, userId))
+    }
+
+    async incrementOtpAttempt(userId: string) {
+        await this.db
+        .update(schema.users)
+        .set({
+            otpAttempts:sql`${ schema.users.otpAttempts } + 1`, 
+        })
+        .where(eq(schema.users.id, userId));
+    }
+
+    async clearOtp(userId: string) {
+        await this.db
+        .update(schema.users)
+        .set({
+                otpToken: null,
+                otpExpiry: null,
+                otpAttempts: 0
+        })
+        .where(eq(schema.users.id, userId))
+    }
+
+    async resetPassword(userId: string, hashedPassword: string){
+        await this.db
+        .update(schema.users)
+        .set({
+            password: hashedPassword,
+            otpToken: null,
+            otpExpiry: null,
+            otpAttempts: 0,
+            refreshToken: null
+        })
+        .where(eq(schema.users.id, userId));
+    }
+
 }
