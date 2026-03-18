@@ -9,6 +9,7 @@ import { eq } from 'drizzle-orm';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { EnvVars } from 'src/config/env.validation';
+import { CurrentUser } from './decorator/current-user.decorator';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
         @Inject(DATABASE_TOKEN)
         private db: DB
     ){}
+
     //regiser user
     async register(createAuthDto: CreateAuthDto) {
         // Hash the Password 
@@ -76,6 +78,15 @@ export class AuthService {
         return null
     }
 
+    // me /profile
+    async getMe(@CurrentUser() user: { userId: string }) {
+        const dbUser = await this.db.query.users.findFirst({
+            where: eq(schema.users.id, user.userId),
+            columns: { id: true, email: true, createdAt: true }, // select only what you need
+        });
+
+        return dbUser;
+}
     //logout user
     async logout(userId: string) {
         await this.db

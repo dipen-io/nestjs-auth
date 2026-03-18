@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, HttpCode, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, HttpCode, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { LoginDto } from './dto/login.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { CurrentUser } from './decorator/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +29,16 @@ export class AuthController {
         //NOTE: we will return an jwt here 
         return { message: 'Login Successfully', user }
 
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('me')
+    async getMe(@CurrentUser() user: { userId: string; email: string }) {
+        // user.userId comes from JwtStrategy validate()
+        return {
+            id: user.userId,
+            email: user.email,
+        };
     }
 
     @Get(':id')
