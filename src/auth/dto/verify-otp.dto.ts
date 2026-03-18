@@ -5,7 +5,7 @@ export class VerifyOtpDto {
     email: string;
 
     @IsString()
-    @Length(4 ,4,  {message: 'OTP must be exactly 6 digit' })
+    @Length(6 ,6,  {message: 'OTP must be exactly 6 digit' })
     otp: string;
 
     @IsString()
