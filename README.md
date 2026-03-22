@@ -60,7 +60,9 @@ src/
 ├── common/
 │   └── interceptors/
 │       └── response.interceptor.ts
-└── main.ts
+|
+|——app.module.ts
+|── main.ts
 ```
 
 ---
